@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HN Skin</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="var(--accent)" />
+        <path d="M12 6.5 17.5 15h-11z" fill="#fff" />
+      </svg>
+      <div class="title">
+        <strong>HN Skin</strong>
+        <span>A calmer Hacker News</span>
+      </div>
+      <label class="switch" title="Turn HN Skin on or off">
+        <input type="checkbox" id="enabled" />
+        <span></span>
+      </label>
+    </header>
+
+    <main id="settings">
+      <section>
+        <h2>Theme</h2>
+        <div class="seg" data-key="theme">
+          <button value="auto">Auto</button>
+          <button value="light">Light</button>
+          <button value="dark">Dark</button>
+          <button value="sepia">Sepia</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Accent</h2>
+        <div class="swatches" id="accents"></div>
+      </section>
+
+      <section class="row2">
+        <div>
+          <h2>Typeface</h2>
+          <div class="seg" data-key="font">
+            <button value="sans">Sans</button>
+            <button value="serif">Serif</button>
+          </div>
+        </div>
+        <div>
+          <h2>Width</h2>
+          <div class="seg" data-key="width">
+            <button value="narrow">S</button>
+            <button value="medium">M</button>
+            <button value="wide">L</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Text size <output id="fontSizeOut"></output></h2>
+        <input type="range" id="fontSize" min="14" max="20" step="1" />
+      </section>
+
+      <section class="toggles">
+        <label><span>Highlight new comments<small>Since your last visit to a thread</small></span><input type="checkbox" data-key="highlightNew" /></label>
+        <label><span>Dim stories you've read</span><input type="checkbox" data-key="dimRead" /></label>
+        <label><span>Open links in a new tab</span><input type="checkbox" data-key="newTab" /></label>
+        <label><span>Show site icons<small>Fetched via DuckDuckGo's icon service</small></span><input type="checkbox" data-key="favicons" /></label>
+        <label><span>Keyboard shortcuts<small>Press ? on Hacker News for the list</small></span><input type="checkbox" data-key="keyboard" /></label>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <button id="reset" type="button">Reset to defaults</button>
+      <a href="https://news.ycombinator.com/" target="_blank" rel="noopener">Open Hacker News →</a>
+    </footer>
+
+    <script src="../shared/settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

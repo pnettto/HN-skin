@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "HN Skin",
+  "short_name": "HN Skin",
+  "version": "1.0.0",
+  "description": "A calm, modern, keyboard-friendly reading experience for Hacker News.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "HN Skin",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://icons.duckduckgo.com/*"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://news.ycombinator.com/*"],
+      "css": ["src/content/skin.css"],
+      "js": ["src/shared/settings.js", "src/content/early.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://news.ycombinator.com/*"],
+      "js": [
+        "src/content/util.js",
+        "src/content/store.js",
+        "src/content/parse.js",
+        "src/content/ui.js",
+        "src/content/list.js",
+        "src/content/comments.js",
+        "src/content/keyboard.js",
+        "src/content/main.js"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}
