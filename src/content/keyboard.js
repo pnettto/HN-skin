@@ -112,6 +112,8 @@
       if (k === 'c' && focused) return run(() => open(focused.querySelector('.hnx-cpill')?.getAttribute('href') || `item?id=${focused.dataset.id}`));
       if (k === 'u' && focused) return run(() => focused.querySelector('.hnx-vote')?.hnxVote?.('up'));
       if (k === 'n') return run(() => open(document.querySelector('.hnx-more')?.getAttribute('href')));
+      if ((k === '[' || k === 'h') && HNX.pastNav) return run(() => HNX.pastNav(-1));
+      if ((k === ']' || k === 'l') && HNX.pastNav) return run(() => HNX.pastNav(1));
       return;
     }
 

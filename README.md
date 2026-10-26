@@ -26,6 +26,9 @@ A Chrome extension that makes Hacker News calmer and easier to read. It keeps ev
 - `OP` and `you` badges, and green names for new accounts
 - A reading progress bar and a back-to-top button
 
+**Past front pages**
+- The **Past** tab has a day navigator. Step a day back or forward with the arrows or with `[` / `]`. You can also pick any date back to HN's launch in 2007, click a day in the week strip, or jump back a week, month, year, or five years.
+
 **Story lists**
 - Clean rows with site favicons, `Ask HN`, `Show HN`, `Launch HN`, and `Tell HN` badges, and year and `[pdf]` tags
 - Stories you've opened are dimmed
@@ -42,6 +45,7 @@ A Chrome extension that makes Hacker News calmer and easier to read. It keeps ev
 | `x` / `Enter` | — | collapse / expand |
 | `p` | — | go to parent |
 | `n` | next page | next new comment |
+| `[` / `]` | previous / next day (Past) | — |
 | `u` | upvote | upvote |
 | `r` | — | reply |
 | `T` | — | toggle top-level only |

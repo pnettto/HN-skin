@@ -272,7 +272,7 @@
 
   const SHORTCUTS = {
     Everywhere: [['?', 'Show / hide this help'], ['/', 'Search'], ['t', 'Cycle theme'], ['Esc', 'Close / clear focus']],
-    'Story lists': [['j  k', 'Next / previous story'], ['o  ↵', 'Open link'], ['c', 'Open comments'], ['u', 'Upvote'], ['n', 'Next page']],
+    'Story lists': [['j  k', 'Next / previous story'], ['o  ↵', 'Open link'], ['c', 'Open comments'], ['u', 'Upvote'], ['n', 'Next page'], ['[  ]', 'Previous / next day (Past)']],
     Comments: [
       ['j  k', 'Next / previous comment'],
       ['J  K', 'Next / previous sibling'],

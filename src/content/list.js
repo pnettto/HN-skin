@@ -35,6 +35,125 @@
     return out;
   };
 
+  /* ---------- Past: day navigator ---------- */
+
+  const HN_LAUNCH = '2007-02-19';
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  // All date math happens on UTC midnights so time zones never shift a day.
+  const parseIso = (iso) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null;
+  };
+  const toIso = (d) => d.toISOString().slice(0, 10);
+  const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
+  const addMonths = (d, n) => {
+    const r = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + n, 1));
+    const last = new Date(Date.UTC(r.getUTCFullYear(), r.getUTCMonth() + 1, 0)).getUTCDate();
+    r.setUTCDate(Math.min(d.getUTCDate(), last));
+    return r;
+  };
+  const todayUtc = () => {
+    const n = new Date();
+    return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()));
+  };
+  const fmt = (d, opts) => d.toLocaleDateString(undefined, { timeZone: 'UTC', ...opts });
+
+  // The day being shown: ?day=, else HN's own "Stories from October 20, 2026" line, else yesterday.
+  const currentDay = (bigbox) => {
+    const fromUrl = parseIso(new URLSearchParams(location.search).get('day'));
+    if (fromUrl) return fromUrl;
+    const m = /Stories from (\w+) (\d{1,2}), (\d{4})/.exec(bigbox.textContent);
+    if (m && MONTHS.includes(m[1])) return new Date(Date.UTC(+m[3], MONTHS.indexOf(m[1]), +m[2]));
+    return addDays(todayUtc(), -1);
+  };
+
+  const dayHref = (d) => `front?day=${toIso(d)}`;
+
+  const pastNavigator = (day) => {
+    const today = todayUtc();
+    const min = parseIso(HN_LAUNCH);
+    const clamp = (d) => (d > today ? today : d < min ? min : d);
+    const go = (d) => {
+      d = clamp(d);
+      if (toIso(d) !== toIso(day)) location.href = dayHref(d);
+    };
+    HNX.pastNav = (n) => go(addDays(day, n));
+
+    const step = (label, d, title, cls = '') => {
+      const off = d < min || d > today || toIso(d) === toIso(day);
+      return off
+        ? h('span', { class: `hnx-day-step ${cls} hnx-disabled`, 'aria-disabled': 'true' }, label)
+        : h('a', { class: `hnx-day-step ${cls}`, href: dayHref(d), title }, label);
+    };
+
+    const picker = h('input', {
+      type: 'date',
+      class: 'hnx-day-input',
+      value: toIso(day),
+      min: HN_LAUNCH,
+      max: toIso(today),
+      'aria-label': 'Pick a date',
+      onchange: (e) => {
+        const d = parseIso(e.target.value);
+        if (d) go(d);
+      },
+    });
+
+    // A week-long strip around the current day, never running past today.
+    const end = clamp(addDays(day, 3));
+    const start = addDays(end, -6);
+    const strip = [];
+    for (let d = start; d <= end; d = addDays(d, 1)) {
+      const active = toIso(d) === toIso(day);
+      strip.push(
+        h(
+          active ? 'span' : 'a',
+          { class: `hnx-day${active ? ' hnx-active' : ''}${d.getUTCDay() % 6 === 0 ? ' hnx-weekend' : ''}`, href: active ? null : dayHref(d), title: fmt(d, { dateStyle: 'full' }), 'aria-current': active ? 'date' : null },
+          h('span', { class: 'hnx-day-wd' }, fmt(d, { weekday: 'short' })),
+          h('span', { class: 'hnx-day-n' }, d.getUTCDate()),
+        ),
+      );
+    }
+
+    const daysAgo = Math.round((today - day) / 864e5);
+    const relative = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : daysAgo < 60 ? `${daysAgo} days ago` : null;
+
+    return h(
+      'section',
+      { class: 'hnx-past', 'aria-label': 'Browse past front pages' },
+      h(
+        'div',
+        { class: 'hnx-past-top' },
+        h(
+          'div',
+          { class: 'hnx-past-title' },
+          h('span', { class: 'hnx-past-kicker' }, relative ? `Front page · ${relative}` : 'Front page'),
+          h('h1', null, fmt(day, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })),
+        ),
+        h(
+          'div',
+          { class: 'hnx-past-pick' },
+          step(icon('chevron', 'hnx-rot-left'), addDays(day, -1), 'Previous day ([)', 'hnx-day-arrow'),
+          h('label', { class: 'hnx-day-pickwrap', title: 'Jump to a date', onclick: () => { try { picker.showPicker(); } catch {} } }, icon('calendar'), picker),
+          step(icon('chevron', 'hnx-rot-right'), addDays(day, 1), 'Next day (])', 'hnx-day-arrow'),
+        ),
+      ),
+      h('nav', { class: 'hnx-day-strip', 'aria-label': 'Nearby days' }, strip),
+      h(
+        'div',
+        { class: 'hnx-past-jumps' },
+        h('span', { class: 'hnx-past-label' }, 'Back'),
+        step('1 week', addDays(day, -7), 'One week earlier'),
+        step('1 month', addMonths(day, -1), 'One month earlier'),
+        step('1 year', addMonths(day, -12), 'One year earlier'),
+        step('5 years', addMonths(day, -60), 'Five years earlier'),
+        h('span', { class: 'hnx-past-sep' }),
+        step('Yesterday', addDays(today, -1), 'Yesterday’s front page'),
+      ),
+    );
+  };
+
   const renderStory = (s, seen) => {
     const { title, chips } = HNX.splitTitle(s.title);
     const external = !!s.host;
@@ -145,7 +264,9 @@
     if (['favorites', 'upvoted', 'submitted', 'hidden'].includes(op) && params.get('id')) heading = `${PAGE_TITLES[op]} · ${params.get('id')}`;
     const page = Number(params.get('p')) || 1;
 
-    if (heading) {
+    if (op === 'front') {
+      main.append(pastNavigator(currentDay(bigbox)));
+    } else if (heading) {
       main.append(
         h('div', { class: 'hnx-page-head' }, h('h1', null, heading), page > 1 && h('span', { class: 'hnx-page-num' }, `Page ${page}`)),
       );
@@ -153,7 +274,7 @@
     main.append(...notices);
 
     if (!stories.length) {
-      main.append(h('div', { class: 'hnx-empty' }, 'Nothing here yet.'));
+      main.append(h('div', { class: 'hnx-empty' }, op === 'front' ? 'No stories for this day.' : 'Nothing here yet.'));
     } else {
       main.append(h('ol', { class: 'hnx-list', start: stories[0].rank || 1 }, stories.map((s) => renderStory(s, seen[s.id]))));
     }

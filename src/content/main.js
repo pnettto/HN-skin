@@ -48,7 +48,7 @@
     if (bigbox) {
       const ctx = { main, header, bigbox };
       if (bigbox.querySelector('table.fatitem')) mode = await HNX.renderItem(ctx);
-      else if (bigbox.querySelector('tr.athing .titleline')) mode = await HNX.renderList(ctx);
+      else if (header.op === 'front' || bigbox.querySelector('tr.athing .titleline')) mode = await HNX.renderList(ctx);
       else if (bigbox.querySelector('tr.athing .comhead')) mode = await HNX.renderCommentList(ctx);
     }
 
