@@ -3,7 +3,7 @@
   "name": "HN Skin",
   "short_name": "HN Skin",
   "version": "1.0.0",
-  "description": "A calm, modern, keyboard-friendly reading experience for Hacker News.",
+  "description": "Alternative layout for Hacker News. Not affiliated with Hacker News or Y Combinator.",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",

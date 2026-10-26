@@ -1,38 +1,37 @@
 # HN Skin
 
-A Chrome extension that makes Hacker News calmer and easier to read. It keeps everything HN does, including voting, replying, hiding, favouriting, and logging in, and changes how it looks and how you get around.
+A Chrome extension that changes the layout of Hacker News. It works on top of the existing site, so voting, replying, hiding, favouriting and logging in still use HN's own pages and endpoints.
+
+Not affiliated with, endorsed by, or connected to Hacker News or Y Combinator.
 
 ![Story list](docs/stories-light.png)
 
-| Threads | Dark mode, new comments highlighted |
+| Thread | Dark theme |
 | --- | --- |
 | ![Thread](docs/thread-light.png) | ![Dark thread](docs/thread-dark.png) |
 
-## What it does
+## Features
 
-**Reading**
-- A readable column with modern type, generous line height, and a width you can choose (S / M / L)
-- Light, dark, sepia, or automatic theme, with no flash of the old page on load
-- Sans or serif text, from 14 to 20 px, and eight accent colours
-- `> quoted` lines become real block quotes, and code blocks get proper monospace styling
-- Downvoted comments fade the way HN intends and become fully readable on hover
+**Layout**
+- Single column with a selectable width (S / M / L)
+- Light, dark, sepia, or system theme
+- Sans or serif text, 14–20 px, and a choice of accent colour
+- Lines starting with `>` render as block quotes; code blocks use a monospace font
 
 **Threads**
-- Coloured thread lines. Click a line or a comment header to collapse a whole branch.
-- Collapsed comments show how many replies they hide
-- **New since your last visit**: comments posted since you last opened a thread are highlighted. Press `n` to jump through them. The story list also shows a `+N` badge on comment counts.
-- **Top-level only** mode for skimming big threads
-- Reply inline without leaving the page (`⌘/Ctrl + Enter` sends)
-- `OP` and `you` badges, and green names for new accounts
-- A reading progress bar and a back-to-top button
-
-**Past front pages**
-- The **Past** tab has a compact day navigator. Step a day back or forward with the arrows or with `[` / `]`, click a nearby day, or pick any date back to 2007.
+- Collapsible comments, by clicking the thread line or the comment header
+- Comments added since the last visit to a thread are marked
+- Option to show top-level comments only
+- Inline reply form
+- `OP` and `you` labels
 
 **Story lists**
-- Clean rows with site favicons, `Ask HN`, `Show HN`, `Launch HN`, and `Tell HN` badges, and year and `[pdf]` tags
-- Stories you've opened are dimmed
-- One-click upvote, and hiding a story happens in place without a page reload
+- Site favicons and labels for Ask / Show / Launch / Tell HN
+- Opened stories are dimmed
+- Upvote and hide without a page reload
+
+**Past front pages**
+- The Past tab has a date heading, previous/next day arrows, a row of nearby days and a calendar to pick any date back to 2007
 
 **Keyboard** (press `?` on any page)
 
@@ -58,15 +57,15 @@ Settings are in the toolbar popup.
 ## Install (unpacked)
 
 1. Clone this repo.
-2. Open `chrome://extensions` and turn on **Developer mode**.
+2. Open `chrome://extensions` and enable **Developer mode**.
 3. Click **Load unpacked** and select the repo folder.
-4. Visit [news.ycombinator.com](https://news.ycombinator.com).
+4. Open [news.ycombinator.com](https://news.ycombinator.com).
 
-It works in any Chromium browser (Chrome, Edge, Brave, Arc).
+It should also work in other Chromium-based browsers.
 
 ## How it works
 
-HN serves plain table-based HTML. The content scripts parse it into data, build a new interface from that data, and remove the original layout. Comment HTML is moved over, not re-parsed, so HN's sanitising still applies. All actions go to HN's own endpoints, the same way HN's `hn.js` does.
+HN serves table-based HTML. The content scripts parse it into plain objects, build a new interface from them, and remove the original layout. Comment HTML is moved over as-is rather than re-parsed. Actions call the same endpoints HN's own `hn.js` uses.
 
 ```
 manifest.json
@@ -74,13 +73,13 @@ src/
   background.js        favicon fetcher (HN's CSP blocks third-party images)
   shared/settings.js   defaults, load/save, apply prefs to <html>
   content/
-    skin.css           every style, scoped under html.hnx
-    early.js           document_start: theme + hide old layout (no flash)
+    skin.css           all styles, scoped under html.hnx
+    early.js           document_start: apply theme, hide original layout
     util.js            DOM helper, icons, time formatting, toast
-    store.js           local read history (last visit, max comment id seen)
+    store.js           local read history (last visit, highest comment id seen)
     parse.js           HN markup → plain objects
     ui.js              top bar, votes, composer, help overlay
-    list.js            story lists
+    list.js            story lists, past-day navigator
     comments.js        threads, comment lists, inline replies
     keyboard.js        shortcuts and focus
     main.js            page detection, rendering, fallback
@@ -88,15 +87,21 @@ src/
 scripts/make_icons.py  regenerates icons/ (no dependencies)
 ```
 
-**Fallbacks.** Pages it doesn't redesign, such as profiles, submit, login, and the FAQ, keep HN's markup with the new theme applied. If a render ever throws, the page reloads once as plain HN. You can also switch the extension off from the popup.
+Pages without a custom layout (profiles, submit, login, FAQ) keep HN's markup with the theme applied. If rendering throws an error, the page reloads once without the extension. The extension can also be turned off from the popup.
 
-**Privacy.** Read history (which threads you opened and when) stays in `chrome.storage.local` on your machine. The only outside request is for site favicons, which the extension fetches through DuckDuckGo's icon service. You can turn favicons off in the popup.
+## Privacy
+
+Read history (which threads were opened and when) is stored in `chrome.storage.local` and never leaves the browser. The only external requests are for site favicons, fetched through DuckDuckGo's icon service; these can be turned off in the popup.
 
 ## Development
 
-There is no build step. Edit the files, then click the reload icon on the extension's card in `chrome://extensions` and refresh HN.
+There is no build step. After editing, reload the extension in `chrome://extensions` and refresh HN.
 
 ```sh
 python3 scripts/make_icons.py   # regenerate icons
-zip -r hn-skin.zip manifest.json icons src -x '*.DS_Store'   # package for the Chrome Web Store
+zip -r hn-skin.zip manifest.json icons src -x '*.DS_Store'   # package
 ```
+
+## Disclaimer
+
+Hacker News is a trademark of Y Combinator. This is an independent project; it is not affiliated with or endorsed by Hacker News or Y Combinator.
