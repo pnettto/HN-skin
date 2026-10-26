@@ -510,33 +510,20 @@ html.hnx .hnx-empty {
 /* ---------- Past: day navigator ---------- */
 
 html.hnx .hnx-past {
-  margin: 0 0 18px;
-  padding: 20px 22px 16px;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  margin: 4px 4px 16px;
 }
 
 html.hnx .hnx-past-top {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px 20px;
+  gap: 8px 16px;
 }
 
-html.hnx .hnx-past-kicker {
-  color: var(--accent-ink);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-html.hnx .hnx-past-title h1 {
-  margin: 2px 0 0;
-  font-size: 1.55rem;
+html.hnx .hnx-past h1 {
+  margin: 0;
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -545,40 +532,29 @@ html.hnx .hnx-past-title h1 {
 html.hnx .hnx-past-pick {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
+  color: var(--muted);
 }
 
 html.hnx .hnx-day-step {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
   height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--surface);
-  color: var(--text-2);
-  font-size: 0.8rem;
-  font-weight: 550;
-  white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  color: var(--muted);
+  font-size: 17px;
+  transition: color 0.15s, background 0.15s;
 }
 
 html.hnx a.hnx-day-step:hover {
-  border-color: var(--hnx-accent);
-  color: var(--accent-ink);
+  color: var(--text);
+  background: var(--surface-2);
 }
 
 html.hnx .hnx-day-step.hnx-disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: default;
-}
-
-html.hnx .hnx-day-arrow {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  font-size: 18px;
 }
 
 html.hnx .hnx-rot-left {
@@ -592,28 +568,28 @@ html.hnx .hnx-rot-right {
 html.hnx .hnx-day-pickwrap {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 14px 0 12px;
-  border: 1px solid var(--border);
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
   border-radius: 999px;
-  background: var(--bg);
   color: var(--muted);
+  font-size: 14px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
+html.hnx .hnx-day-pickwrap:hover,
 html.hnx .hnx-day-pickwrap:focus-within {
-  border-color: var(--hnx-accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  color: var(--text);
+  background: var(--surface-2);
 }
 
 html.hnx .hnx-day-input {
-  height: 100%;
   border: 0;
+  padding: 0;
   background: transparent;
-  color: var(--text);
-  font: 600 0.85rem var(--font-sans);
+  color: inherit;
+  font: 500 0.8125rem var(--font-sans);
   font-variant-numeric: tabular-nums;
   outline: none;
   cursor: pointer;
@@ -624,93 +600,47 @@ html.hnx .hnx-day-input::-webkit-calendar-picker-indicator {
 }
 
 html.hnx .hnx-day-strip {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
-  margin: 18px 0 14px;
+  display: flex;
+  gap: 2px;
+  margin: 8px 0 0 -8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+html.hnx .hnx-day-strip::-webkit-scrollbar {
+  display: none;
 }
 
 html.hnx .hnx-day {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  padding: 8px 0 7px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--faint);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
 }
 
 html.hnx a.hnx-day:hover {
-  border-color: var(--border-strong);
   color: var(--text);
-  transform: translateY(-1px);
-}
-
-html.hnx .hnx-day-wd {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-html.hnx .hnx-day.hnx-weekend .hnx-day-wd {
-  color: var(--faint);
+  background: var(--surface-2);
 }
 
 html.hnx .hnx-day-n {
-  font-size: 1.05rem;
-  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 html.hnx .hnx-day.hnx-active {
-  border-color: var(--hnx-accent);
+  color: var(--accent-ink);
   background: var(--accent-soft);
-  color: var(--accent-ink);
-}
-
-html.hnx .hnx-day.hnx-active .hnx-day-wd {
-  color: var(--accent-ink);
-}
-
-html.hnx .hnx-past-jumps {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-
-html.hnx .hnx-past-label {
-  margin-right: 4px;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-html.hnx .hnx-past-sep {
-  flex: 1;
+  font-weight: 600;
 }
 
 @media (max-width: 600px) {
-  html.hnx .hnx-past {
-    padding: 16px 14px 14px;
-  }
-  html.hnx .hnx-past-title h1 {
+  html.hnx .hnx-past h1 {
     font-size: 1.3rem;
-  }
-  html.hnx .hnx-day-strip {
-    gap: 4px;
-  }
-  html.hnx .hnx-past-sep {
-    display: none;
   }
 }
 

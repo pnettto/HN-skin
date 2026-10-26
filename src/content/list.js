@@ -47,12 +47,6 @@
   };
   const toIso = (d) => d.toISOString().slice(0, 10);
   const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
-  const addMonths = (d, n) => {
-    const r = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + n, 1));
-    const last = new Date(Date.UTC(r.getUTCFullYear(), r.getUTCMonth() + 1, 0)).getUTCDate();
-    r.setUTCDate(Math.min(d.getUTCDate(), last));
-    return r;
-  };
   const todayUtc = () => {
     const n = new Date();
     return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()));
@@ -109,15 +103,12 @@
       strip.push(
         h(
           active ? 'span' : 'a',
-          { class: `hnx-day${active ? ' hnx-active' : ''}${d.getUTCDay() % 6 === 0 ? ' hnx-weekend' : ''}`, href: active ? null : dayHref(d), title: fmt(d, { dateStyle: 'full' }), 'aria-current': active ? 'date' : null },
+          { class: `hnx-day${active ? ' hnx-active' : ''}`, href: active ? null : dayHref(d), title: fmt(d, { dateStyle: 'full' }), 'aria-current': active ? 'date' : null },
           h('span', { class: 'hnx-day-wd' }, fmt(d, { weekday: 'short' })),
           h('span', { class: 'hnx-day-n' }, d.getUTCDate()),
         ),
       );
     }
-
-    const daysAgo = Math.round((today - day) / 864e5);
-    const relative = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : daysAgo < 60 ? `${daysAgo} days ago` : null;
 
     return h(
       'section',
@@ -125,12 +116,7 @@
       h(
         'div',
         { class: 'hnx-past-top' },
-        h(
-          'div',
-          { class: 'hnx-past-title' },
-          h('span', { class: 'hnx-past-kicker' }, relative ? `Front page · ${relative}` : 'Front page'),
-          h('h1', null, fmt(day, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })),
-        ),
+        h('h1', null, fmt(day, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })),
         h(
           'div',
           { class: 'hnx-past-pick' },
@@ -140,17 +126,6 @@
         ),
       ),
       h('nav', { class: 'hnx-day-strip', 'aria-label': 'Nearby days' }, strip),
-      h(
-        'div',
-        { class: 'hnx-past-jumps' },
-        h('span', { class: 'hnx-past-label' }, 'Back'),
-        step('1 week', addDays(day, -7), 'One week earlier'),
-        step('1 month', addMonths(day, -1), 'One month earlier'),
-        step('1 year', addMonths(day, -12), 'One year earlier'),
-        step('5 years', addMonths(day, -60), 'Five years earlier'),
-        h('span', { class: 'hnx-past-sep' }),
-        step('Yesterday', addDays(today, -1), 'Yesterday’s front page'),
-      ),
     );
   };
 
