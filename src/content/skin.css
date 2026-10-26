@@ -594,16 +594,134 @@ html.hnx .hnx-day-pickbtn:hover {
   background: var(--surface-2);
 }
 
-/* Invisible, but laid over the button so the calendar popup anchors to it. */
-html.hnx .hnx-day-input {
+html.hnx .hnx-day-pickbtn[aria-expanded="true"] {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+html.hnx .hnx-cal {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  pointer-events: none;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: 284px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  animation: hnx-cal-in 0.12s ease-out;
+}
+
+html.hnx .hnx-cal[hidden] {
+  display: none;
+}
+
+@keyframes hnx-cal-in {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+html.hnx .hnx-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+html.hnx .hnx-cal-sels {
+  display: flex;
+  gap: 2px;
+}
+
+html.hnx .hnx-cal-sel {
+  height: 28px;
+  padding: 0 6px;
   border: 0;
-  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: 600 0.85rem var(--font-sans);
+  cursor: pointer;
+  outline: none;
+}
+
+html.hnx .hnx-cal-sel:hover,
+html.hnx .hnx-cal-sel:focus-visible {
+  background: var(--surface-2);
+}
+
+html.hnx .hnx-cal-sel option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html.hnx .hnx-cal-nav {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+html.hnx .hnx-cal-nav:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+html.hnx .hnx-cal-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+html.hnx .hnx-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+html.hnx .hnx-cal-wd {
+  padding: 4px 0 6px;
+  color: var(--faint);
+  font-size: 0.7rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+html.hnx .hnx-cal-day {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.12s, color 0.12s;
+}
+
+html.hnx a.hnx-cal-day:hover {
+  background: var(--surface-2);
+}
+
+html.hnx .hnx-cal-out {
+  color: var(--faint);
+}
+
+html.hnx .hnx-cal-off {
+  color: var(--faint);
+  opacity: 0.4;
+}
+
+html.hnx .hnx-cal-today {
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+html.hnx .hnx-cal-day.hnx-cal-sel-day {
+  background: var(--hnx-accent);
+  color: #fff;
+  font-weight: 650;
 }
 
 html.hnx .hnx-day-strip {
@@ -646,6 +764,10 @@ html.hnx .hnx-day.hnx-active {
 }
 
 @media (max-width: 600px) {
+  html.hnx .hnx-cal {
+    left: 0;
+    right: auto;
+  }
   html.hnx .hnx-past h1 {
     font-size: 1.3rem;
   }

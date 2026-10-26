@@ -64,6 +64,86 @@
 
   const dayHref = (d) => `front?day=${toIso(d)}`;
 
+  // Our own month calendar. Chrome's native date popup can't be opened reliably from a
+  // content script, and its typed segments navigate on half-entered years.
+  const calendar = (day, today, min) => {
+    let view = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1));
+    const monthStart = (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+    const minMonth = monthStart(min);
+    const maxMonth = monthStart(today);
+    const api = { onToggle: null };
+
+    const el = h('div', { class: 'hnx-cal', role: 'dialog', 'aria-label': 'Choose a date', hidden: true });
+    el.addEventListener('click', (e) => e.stopPropagation());
+
+    const setView = (d) => {
+      view = d < minMonth ? minMonth : d > maxMonth ? maxMonth : d;
+      render();
+    };
+
+    const render = () => {
+      const y = view.getUTCFullYear();
+      const m = view.getUTCMonth();
+      const monthSel = h('select', { class: 'hnx-cal-sel', 'aria-label': 'Month', onchange: (e) => setView(new Date(Date.UTC(y, +e.target.value, 1))) },
+        MONTHS.map((name, i) => h('option', { value: i, selected: i === m }, name)));
+      const yearSel = h('select', { class: 'hnx-cal-sel', 'aria-label': 'Year', onchange: (e) => setView(new Date(Date.UTC(+e.target.value, m, 1))) });
+      for (let yy = today.getUTCFullYear(); yy >= min.getUTCFullYear(); yy--) yearSel.append(h('option', { value: yy, selected: yy === y }, yy));
+
+      const nav = (dir, label) => {
+        const target = new Date(Date.UTC(y, m + dir, 1));
+        const off = target < minMonth || target > maxMonth;
+        return h('button', { type: 'button', class: 'hnx-cal-nav', 'aria-label': label, disabled: off, onclick: () => setView(target) }, icon('chevron', dir < 0 ? 'hnx-rot-left' : 'hnx-rot-right'));
+      };
+
+      // Monday-first grid, always six rows so the popover doesn't jump in height.
+      const first = new Date(Date.UTC(y, m, 1));
+      const gridStart = addDays(first, -((first.getUTCDay() + 6) % 7));
+      const cells = [];
+      for (let i = 0; i < 42; i++) {
+        const d = addDays(gridStart, i);
+        const iso = toIso(d);
+        const cls = ['hnx-cal-day', d.getUTCMonth() !== m && 'hnx-cal-out', iso === toIso(day) && 'hnx-cal-sel-day', iso === toIso(today) && 'hnx-cal-today'].filter(Boolean).join(' ');
+        cells.push(d < min || d > today
+          ? h('span', { class: `${cls} hnx-cal-off` }, d.getUTCDate())
+          : h('a', { class: cls, href: dayHref(d), title: fmt(d, { dateStyle: 'full' }) }, d.getUTCDate()));
+      }
+      const weekdays = Array.from({ length: 7 }, (_, i) => fmt(addDays(gridStart, i), { weekday: 'narrow' }));
+
+      el.replaceChildren(
+        h('div', { class: 'hnx-cal-head' }, nav(-1, 'Previous month'), h('div', { class: 'hnx-cal-sels' }, monthSel, yearSel), nav(1, 'Next month')),
+        h('div', { class: 'hnx-cal-grid' }, weekdays.map((w) => h('span', { class: 'hnx-cal-wd' }, w)), cells),
+      );
+    };
+
+    const close = () => api.toggle(false);
+    const onDocKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+      }
+    };
+
+    api.toggle = (force) => {
+      const open = force ?? el.hidden;
+      if (open === !el.hidden) return;
+      if (open) {
+        view = monthStart(day);
+        render();
+        document.addEventListener('click', close);
+        document.addEventListener('keydown', onDocKey, true);
+      } else {
+        document.removeEventListener('click', close);
+        document.removeEventListener('keydown', onDocKey, true);
+      }
+      el.hidden = !open;
+      api.onToggle?.(open);
+      if (open) el.querySelector('.hnx-cal-sel-day, a.hnx-cal-day')?.focus();
+    };
+    api.el = el;
+    return api;
+  };
+
   const pastNavigator = (day) => {
     const today = todayUtc();
     const min = parseIso(HN_LAUNCH);
@@ -81,28 +161,19 @@
         : h('a', { class: `hnx-day-step ${cls}`, href: dayHref(d), title }, label);
     };
 
-    // The native date input stays invisible: typing into its segments fires "change" on
-    // half-typed years (e.g. 0002), so we only ever open its calendar popup.
-    const picker = h('input', {
-      type: 'date',
-      class: 'hnx-day-input',
-      value: toIso(day),
-      min: HN_LAUNCH,
-      max: toIso(today),
-      tabindex: '-1',
-      'aria-hidden': 'true',
-      onchange: (e) => {
-        const d = parseIso(e.target.value);
-        if (d && e.target.value >= HN_LAUNCH) go(d);
+    const cal = calendar(day, today, min);
+    const pickBtn = h('button', {
+      type: 'button',
+      class: 'hnx-day-pickbtn',
+      title: 'Jump to a date',
+      'aria-haspopup': 'dialog',
+      'aria-expanded': 'false',
+      onclick: (e) => {
+        e.stopPropagation();
+        cal.toggle();
       },
-    });
-    const openPicker = () => {
-      try {
-        picker.showPicker();
-      } catch {
-        picker.focus();
-      }
-    };
+    }, icon('calendar'), fmt(day, { month: 'short', day: 'numeric', year: 'numeric' }));
+    cal.onToggle = (open) => pickBtn.setAttribute('aria-expanded', String(open));
 
     // A week-long strip around the current day, never running past today.
     const end = clamp(addDays(day, 3));
@@ -134,8 +205,8 @@
           h(
             'span',
             { class: 'hnx-day-pickwrap' },
-            h('button', { type: 'button', class: 'hnx-day-pickbtn', title: 'Jump to a date', 'aria-label': 'Jump to a date', onclick: openPicker }, icon('calendar'), fmt(day, { month: 'short', day: 'numeric', year: 'numeric' })),
-            picker,
+            pickBtn,
+            cal.el,
           ),
           step(icon('chevron', 'hnx-rot-right'), addDays(day, 1), 'Next day (])', 'hnx-day-arrow'),
         ),
