@@ -566,6 +566,11 @@ html.hnx .hnx-rot-right {
 }
 
 html.hnx .hnx-day-pickwrap {
+  position: relative;
+  display: inline-flex;
+}
+
+html.hnx .hnx-day-pickbtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -573,30 +578,32 @@ html.hnx .hnx-day-pickwrap {
   padding: 0 10px;
   border-radius: 999px;
   color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   transition: color 0.15s, background 0.15s;
 }
 
-html.hnx .hnx-day-pickwrap:hover,
-html.hnx .hnx-day-pickwrap:focus-within {
+html.hnx .hnx-day-pickbtn .hnx-icon {
+  font-size: 14px;
+}
+
+html.hnx .hnx-day-pickbtn:hover {
   color: var(--text);
   background: var(--surface-2);
 }
 
+/* Invisible, but laid over the button so the calendar popup anchors to it. */
 html.hnx .hnx-day-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
   border: 0;
   padding: 0;
-  background: transparent;
-  color: inherit;
-  font: 500 0.8125rem var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  outline: none;
-  cursor: pointer;
-}
-
-html.hnx .hnx-day-input::-webkit-calendar-picker-indicator {
-  display: none;
 }
 
 html.hnx .hnx-day-strip {

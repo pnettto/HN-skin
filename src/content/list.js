@@ -81,18 +81,28 @@
         : h('a', { class: `hnx-day-step ${cls}`, href: dayHref(d), title }, label);
     };
 
+    // The native date input stays invisible: typing into its segments fires "change" on
+    // half-typed years (e.g. 0002), so we only ever open its calendar popup.
     const picker = h('input', {
       type: 'date',
       class: 'hnx-day-input',
       value: toIso(day),
       min: HN_LAUNCH,
       max: toIso(today),
-      'aria-label': 'Pick a date',
+      tabindex: '-1',
+      'aria-hidden': 'true',
       onchange: (e) => {
         const d = parseIso(e.target.value);
-        if (d) go(d);
+        if (d && e.target.value >= HN_LAUNCH) go(d);
       },
     });
+    const openPicker = () => {
+      try {
+        picker.showPicker();
+      } catch {
+        picker.focus();
+      }
+    };
 
     // A week-long strip around the current day, never running past today.
     const end = clamp(addDays(day, 3));
@@ -121,7 +131,12 @@
           'div',
           { class: 'hnx-past-pick' },
           step(icon('chevron', 'hnx-rot-left'), addDays(day, -1), 'Previous day ([)', 'hnx-day-arrow'),
-          h('label', { class: 'hnx-day-pickwrap', title: 'Jump to a date', onclick: () => { try { picker.showPicker(); } catch {} } }, icon('calendar'), picker),
+          h(
+            'span',
+            { class: 'hnx-day-pickwrap' },
+            h('button', { type: 'button', class: 'hnx-day-pickbtn', title: 'Jump to a date', 'aria-label': 'Jump to a date', onclick: openPicker }, icon('calendar'), fmt(day, { month: 'short', day: 'numeric', year: 'numeric' })),
+            picker,
+          ),
           step(icon('chevron', 'hnx-rot-right'), addDays(day, 1), 'Next day (])', 'hnx-day-arrow'),
         ),
       ),
