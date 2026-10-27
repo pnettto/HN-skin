@@ -19,7 +19,12 @@
     }
   },
   "permissions": ["storage"],
-  "host_permissions": ["https://icons.duckduckgo.com/*"],
+  "host_permissions": [
+    "https://icons.duckduckgo.com/*",
+    "https://api.openai.com/*",
+    "https://api.deepseek.com/*",
+    "https://api.anthropic.com/*"
+  ],
   "background": {
     "service_worker": "src/background.js"
   },
@@ -37,6 +42,7 @@
         "src/content/store.js",
         "src/content/parse.js",
         "src/content/ui.js",
+        "src/content/topics.js",
         "src/content/list.js",
         "src/content/comments.js",
         "src/content/keyboard.js",

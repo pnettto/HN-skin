@@ -337,7 +337,9 @@
     if (!stories.length) {
       main.append(h('div', { class: 'hnx-empty' }, op === 'front' ? 'No stories for this day.' : 'Nothing here yet.'));
     } else {
-      main.append(h('ol', { class: 'hnx-list', start: stories[0].rank || 1 }, stories.map((s) => renderStory(s, seen[s.id]))));
+      const list = h('ol', { class: 'hnx-list', start: stories[0].rank || 1 }, stories.map((s) => renderStory(s, seen[s.id])));
+      main.append(list);
+      if (op === 'best') HNX.decorateTopics(list, stories);
     }
 
     if (more) {

@@ -4,7 +4,7 @@
   let focused = null;
 
   const visibleComments = () => HNX.$$('.hnx-comment').filter((el) => el.offsetParent !== null);
-  const items = () => (mode === 'list' ? HNX.$$('.hnx-story') : visibleComments());
+  const items = () => (mode === 'list' ? HNX.$$('.hnx-story:not(.hnx-filtered)') : visibleComments());
 
   const setFocus = (el, scroll = true) => {
     if (!el) return;

@@ -18,7 +18,7 @@
     document.body.style.setProperty('--accent', s.accent);
     document.body.classList.toggle('off', !s.enabled);
     $('#enabled').checked = s.enabled;
-    for (const seg of document.querySelectorAll('.seg')) {
+    for (const seg of document.querySelectorAll('.seg[data-key]')) {
       for (const b of seg.querySelectorAll('button')) b.setAttribute('aria-pressed', String(s[seg.dataset.key] === b.value));
     }
     for (const b of accents.children) b.setAttribute('aria-pressed', String(b.title.toLowerCase() === s.accent.toLowerCase()));
@@ -34,7 +34,7 @@
   };
 
   $('#enabled').addEventListener('change', (e) => save({ enabled: e.target.checked }));
-  for (const seg of document.querySelectorAll('.seg')) {
+  for (const seg of document.querySelectorAll('.seg[data-key]')) {
     seg.addEventListener('click', (e) => {
       const b = e.target.closest('button');
       if (b) save({ [seg.dataset.key]: b.value });
@@ -46,5 +46,34 @@
   }
   $('#reset').addEventListener('click', () => save({ ...HNX.DEFAULTS }));
 
+  // AI provider settings stay in storage.local so the key is never synced.
+  let ai = { provider: '', keys: {}, models: {} };
+  try {
+    ai = { ...ai, ...(await chrome.storage.local.get('ai')).ai };
+  } catch {}
+
+  const renderAi = () => {
+    const p = ai.provider;
+    for (const b of $('#aiProvider').children) b.setAttribute('aria-pressed', String(b.value === p));
+    $('#aiFields').hidden = !p;
+    $('#aiKey').value = ai.keys[p] || '';
+    $('#aiModel').value = ai.models[p] || '';
+    $('#aiModel').placeholder = `Model (default ${HNX.AI_MODELS[p] || ''})`;
+  };
+
+  const saveAi = (patch) => {
+    ai = { ...ai, ...patch };
+    renderAi();
+    chrome.storage.local.set({ ai });
+  };
+
+  $('#aiProvider').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (b) saveAi({ provider: b.value });
+  });
+  $('#aiKey').addEventListener('change', (e) => saveAi({ keys: { ...ai.keys, [ai.provider]: e.target.value.trim() } }));
+  $('#aiModel').addEventListener('change', (e) => saveAi({ models: { ...ai.models, [ai.provider]: e.target.value.trim() } }));
+
   render();
+  renderAi();
 })();

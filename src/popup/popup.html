@@ -61,6 +61,21 @@
         <input type="range" id="fontSize" min="14" max="20" step="1" />
       </section>
 
+      <section>
+        <h2>AI topics</h2>
+        <div class="seg" id="aiProvider">
+          <button value="">Off</button>
+          <button value="openai">OpenAI</button>
+          <button value="deepseek">DeepSeek</button>
+          <button value="anthropic">Claude</button>
+        </div>
+        <div class="ai-fields" id="aiFields">
+          <input type="password" id="aiKey" placeholder="API key" autocomplete="off" spellcheck="false" />
+          <input type="text" id="aiModel" autocomplete="off" spellcheck="false" aria-label="Model" />
+          <small>Your key is stored only in this browser. Sorts the Best page. Only story titles and sites are sent, and each story is sorted once.</small>
+        </div>
+      </section>
+
       <section class="toggles">
         <label><span>Highlight new comments<small>Since your last visit to a thread</small></span><input type="checkbox" data-key="highlightNew" /></label>
         <label><span>Dim stories you've read</span><input type="checkbox" data-key="dimRead" /></label>

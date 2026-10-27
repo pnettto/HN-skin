@@ -1,3 +1,5 @@
+importScripts('shared/settings.js');
+
 // HN's CSP only allows images from its own origin, so the content script can't load
 // favicons directly. We fetch them here and hand back base64 bytes, which the page
 // paints into a <canvas> (not subject to img-src).
@@ -42,8 +44,112 @@ const getIcons = async (hosts) => {
   return out;
 };
 
+// Topic labels. Only titles and hostnames are sent, all uncached stories of a page go
+// in one request, and results are cached per story id (topic:<id>), so a page that was
+// seen before costs nothing.
+const { AI_MODELS, TOPICS } = globalThis.HNX;
+const TOPIC_IDS = new Set(TOPICS.map((t) => t.id));
+
+const TOPIC_PROMPT = `You sort Hacker News stories into topics. Pick the single best topic for each story from:
+${TOPICS.map((t) => `- ${t.id}: ${t.hint}`).join('\n')}
+Each input line is "<id><TAB><title> (<site>)". Reply with only a JSON object mapping every id to a topic id, e.g. {"41234567":"science"}.`;
+
+const CHAT_URLS = {
+  openai: 'https://api.openai.com/v1/chat/completions',
+  deepseek: 'https://api.deepseek.com/chat/completions',
+};
+
+const readJson = async (res) => {
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+  return data;
+};
+
+// OpenAI and DeepSeek share the chat completions format.
+const askChat = async (provider, key, model, input) => {
+  const body = {
+    model,
+    messages: [
+      { role: 'system', content: TOPIC_PROMPT },
+      { role: 'user', content: input },
+    ],
+    response_format: { type: 'json_object' },
+  };
+  if (/^(gpt-5|o\d)/.test(model)) body.reasoning_effort = 'minimal';
+  const res = await fetch(CHAT_URLS[provider], {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
+    body: JSON.stringify(body),
+  });
+  return (await readJson(res)).choices?.[0]?.message?.content || '';
+};
+
+const askClaude = async (key, model, input) => {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2026-10-21',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 2048,
+      output_config: { effort: 'low' },
+      system: TOPIC_PROMPT,
+      messages: [{ role: 'user', content: input }],
+    }),
+  });
+  const data = await readJson(res);
+  if (data.stop_reason === 'refusal') throw new Error('Request declined by the model');
+  return (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+};
+
+const getTopics = async (stories) => {
+  const { ai } = await chrome.storage.local.get('ai');
+  const provider = ai?.provider;
+  const key = ai?.keys?.[provider]?.trim();
+  if (!provider || !key) return { topics: {} };
+
+  stories = stories.filter((s) => /^\d+$/.test(s?.id) && typeof s.title === 'string').slice(0, 100);
+  const cached = await chrome.storage.local.get(stories.map((s) => `topic:${s.id}`));
+  const topics = {};
+  const todo = [];
+  for (const s of stories) {
+    const c = cached[`topic:${s.id}`];
+    if (c) topics[s.id] = c.c;
+    else todo.push(s);
+  }
+  if (!todo.length) return { topics };
+
+  const model = ai.models?.[provider]?.trim() || AI_MODELS[provider];
+  const input = todo.map((s) => `${s.id}\t${s.title.slice(0, 200)}${s.host ? ` (${s.host})` : ''}`).join('\n');
+  try {
+    const text = provider === 'anthropic' ? await askClaude(key, model, input) : await askChat(provider, key, model, input);
+    const parsed = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || '{}');
+    const fresh = {};
+    for (const s of todo) {
+      const c = String(parsed[s.id] || '').toLowerCase();
+      if (!TOPIC_IDS.has(c)) continue;
+      topics[s.id] = c;
+      fresh[`topic:${s.id}`] = { c, t: Date.now() };
+    }
+    if (Object.keys(fresh).length) await chrome.storage.local.set(fresh);
+    return { topics };
+  } catch (err) {
+    return { topics, error: String(err?.message || err) };
+  }
+};
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg?.type !== 'favicons' || !Array.isArray(msg.hosts)) return false;
-  getIcons(msg.hosts).then(sendResponse, () => sendResponse({}));
-  return true;
+  if (msg?.type === 'favicons' && Array.isArray(msg.hosts)) {
+    getIcons(msg.hosts).then(sendResponse, () => sendResponse({}));
+    return true;
+  }
+  if (msg?.type === 'topics' && Array.isArray(msg.stories)) {
+    getTopics(msg.stories).then(sendResponse, (err) => sendResponse({ topics: {}, error: String(err) }));
+    return true;
+  }
+  return false;
 });

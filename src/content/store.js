@@ -46,8 +46,8 @@
       if (!area) return;
       try {
         const all = await area.get(null);
-        const staleIcons = Object.entries(all).filter(([k, v]) => k.startsWith('fav:') && Date.now() - v.t > 30 * 864e5);
-        if (staleIcons.length) await area.remove(staleIcons.map(([k]) => k));
+        const stale = Object.entries(all).filter(([k, v]) => /^(fav|topic):/.test(k) && Date.now() - v.t > 30 * 864e5);
+        if (stale.length) await area.remove(stale.map(([k]) => k));
         const entries = Object.entries(all).filter(([k]) => k.startsWith('s:'));
         if (entries.length <= MAX_ENTRIES) return;
         entries.sort((a, b) => (a[1].t || a[1].l || 0) - (b[1].t || b[1].l || 0));

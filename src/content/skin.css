@@ -827,6 +827,88 @@ html.hnx .hnx-story.hnx-hiding {
   transform: translateX(16px);
 }
 
+/* ---------- Topic filter ---------- */
+
+html.hnx .hnx-topics {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 14px;
+  padding: 2px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+html.hnx .hnx-topics::-webkit-scrollbar {
+  display: none;
+}
+
+html.hnx .hnx-topic-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+html.hnx .hnx-topic-chip:hover {
+  color: var(--text);
+}
+
+html.hnx .hnx-topic-chip[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+html.hnx .hnx-topic-n {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+html.hnx .hnx-topics-status {
+  flex: none;
+  padding: 6px 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+html.hnx .hnx-topics-status.hnx-error {
+  color: #e5484d;
+}
+
+html.hnx .hnx-topic {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+html.hnx .hnx-topic:hover {
+  color: var(--text);
+}
+
+html.hnx .hnx-story.hnx-filtered {
+  display: none;
+}
+
+html.hnx .hnx-story.hnx-filter-first::before {
+  content: none;
+}
+
 html.hnx .hnx-story-main {
   min-width: 0;
 }

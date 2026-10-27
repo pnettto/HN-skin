@@ -30,6 +30,11 @@ Not affiliated with, endorsed by, or connected to Hacker News or Y Combinator.
 - Opened stories are dimmed
 - Upvote and hide without a page reload
 
+**AI topics (optional)**
+- Add an OpenAI, DeepSeek or Claude API key in the popup to label stories on the Best page by topic (AI, Programming, Tech, Science, Security, Business, Politics, Philosophy, History, Culture)
+- A row of topic chips above the list filters it; clicking a story's topic label does the same
+- Each page is one request with titles and sites only, using a small model by default (`gpt-5-nano`, `deepseek-chat`, `claude-haiku-5-5`; the model can be changed). Labels are cached per story, so revisiting a page makes no request
+
 **Past front pages**
 - The Past tab has a date heading, previous/next day arrows, a row of nearby days and a calendar to pick any date back to 2007
 
@@ -70,7 +75,7 @@ HN serves table-based HTML. The content scripts parse it into plain objects, bui
 ```
 manifest.json
 src/
-  background.js        favicon fetcher (HN's CSP blocks third-party images)
+  background.js        favicon fetcher (HN's CSP blocks third-party images), AI topic requests
   shared/settings.js   defaults, load/save, apply prefs to <html>
   content/
     skin.css           all styles, scoped under html.hnx
@@ -79,6 +84,7 @@ src/
     store.js           local read history (last visit, highest comment id seen)
     parse.js           HN markup → plain objects
     ui.js              top bar, votes, composer, help overlay
+    topics.js          AI topic labels and filter row
     list.js            story lists, past-day navigator
     comments.js        threads, comment lists, inline replies
     keyboard.js        shortcuts and focus
@@ -92,6 +98,8 @@ Pages without a custom layout (profiles, submit, login, FAQ) keep HN's markup wi
 ## Privacy
 
 Read history (which threads were opened and when) is stored in `chrome.storage.local` and never leaves the browser. The only external requests are for site favicons, fetched through DuckDuckGo's icon service; these can be turned off in the popup.
+
+If AI topics are turned on, the API key is kept in `chrome.storage.local` (never synced, not readable by HN's page scripts), and story titles and sites from the Best pages you open are sent to the chosen provider.
 
 ## Development
 
