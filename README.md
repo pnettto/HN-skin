@@ -38,6 +38,10 @@ Not affiliated with, endorsed by, or connected to Hacker News or Y Combinator.
 **Past front pages**
 - The Past tab has a date heading, previous/next day arrows, a row of nearby days and a calendar to pick any date back to 2007
 
+**Stats**
+- The chart button in the top bar opens `/stats`, a look at the last 30, 15 or 7 days, or the last full day (`?days=`): totals, a daily chart (hourly for one day) of comments, stories and 100-point stories, top stories, the longest threads and most heated debates, top sites and submitters, a heatmap of when popular stories were posted, the most common title words, the best Show HN and Ask HN posts, and a few oddities
+- Data comes from the [HN Search API](https://hn.algolia.com/api) (Algolia), fetched one UTC day at a time by the background worker and cached locally
+
 **Keyboard** (press `?` on any page)
 
 | Key | Lists | Comments |
@@ -75,7 +79,7 @@ HN serves table-based HTML. The content scripts parse it into plain objects, bui
 ```
 manifest.json
 src/
-  background.js        favicon fetcher (HN's CSP blocks third-party images), AI topic requests
+  background.js        favicon fetcher (HN's CSP blocks third-party images), AI topic requests, stats data
   shared/settings.js   defaults, load/save, apply prefs to <html>
   content/
     skin.css           all styles, scoped under html.hnx
@@ -87,6 +91,7 @@ src/
     topics.js          AI topic labels and filter row
     list.js            story lists, past-day navigator
     comments.js        threads, comment lists, inline replies
+    stats.js           the /stats page (last 30 / 15 / 7 / 1 days)
     keyboard.js        shortcuts and focus
     main.js            page detection, rendering, fallback
   popup/               settings UI
@@ -97,7 +102,7 @@ Pages without a custom layout (profiles, submit, login, FAQ) keep HN's markup wi
 
 ## Privacy
 
-Read history (which threads were opened and when) is stored in `chrome.storage.local` and never leaves the browser. The only external requests are for site favicons, fetched through DuckDuckGo's icon service; these can be turned off in the popup.
+Read history (which threads were opened and when) is stored in `chrome.storage.local` and never leaves the browser. The only external requests are for site favicons, fetched through DuckDuckGo's icon service (these can be turned off in the popup), and, when the Stats page is opened, public story and comment counts from the HN Search API.
 
 If AI topics are turned on, the API key is kept in `chrome.storage.local` (never synced, not readable by HN's page scripts), and story titles and sites from the Best pages you open are sent to the chosen provider.
 

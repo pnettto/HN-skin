@@ -25,7 +25,7 @@
       (n) => !NAV.some((x) => x.href === n.href) && n.href && !/^submit/.test(n.href),
     );
     const navItems = [
-      ...NAV.map((n) => ({ ...n, active: n.ops.includes(op) && location.pathname !== '/item' })),
+      ...NAV.map((n) => ({ ...n, active: n.ops.includes(op) && !HNX.isStats && location.pathname !== '/item' })),
       ...extraNav.map((n) => ({ href: n.href, text: cap(n.text), active: n.active })),
     ];
 
@@ -72,6 +72,7 @@
           search,
           h('a', { class: 'hnx-iconbtn hnx-search-mobile', href: 'https://hn.algolia.com/', title: 'Search', 'aria-label': 'Search' }, icon('search')),
           h('a', { class: 'hnx-submit', href: 'submit', rel: 'nofollow' }, icon('plus'), h('span', null, 'Submit')),
+          h('a', { class: `hnx-iconbtn${HNX.isStats ? ' hnx-active' : ''}`, href: 'stats', title: 'Last 30 days', 'aria-label': 'Stats for the last 30 days', 'aria-current': HNX.isStats ? 'page' : null }, icon('chart')),
           themeBtn,
           h('button', { class: 'hnx-iconbtn hnx-help-btn', type: 'button', title: 'Keyboard shortcuts (?)', 'aria-label': 'Keyboard shortcuts', onclick: () => HNX.toggleHelp() }, icon('keyboard')),
           account,

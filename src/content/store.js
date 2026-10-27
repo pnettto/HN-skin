@@ -46,7 +46,7 @@
       if (!area) return;
       try {
         const all = await area.get(null);
-        const stale = Object.entries(all).filter(([k, v]) => /^(fav|topic):/.test(k) && Date.now() - v.t > 30 * 864e5);
+        const stale = Object.entries(all).filter(([k, v]) => /^(fav|topic|stats):/.test(k) && Date.now() - v.t > 30 * 864e5);
         if (stale.length) await area.remove(stale.map(([k]) => k));
         const entries = Object.entries(all).filter(([k]) => k.startsWith('s:'));
         if (entries.length <= MAX_ENTRIES) return;

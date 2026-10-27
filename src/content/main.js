@@ -27,12 +27,24 @@
     return;
   }
 
+  // The stats page has no HN header to read, so it shows the last account seen elsewhere
+  // (name and karma only; the logout link carries a token and isn't kept).
+  const rememberUser = (header) => {
+    try {
+      if (header.user) localStorage.setItem('hnx:me', JSON.stringify(header.user));
+      else if (header.login) localStorage.removeItem('hnx:me');
+      else if (HNX.isStats) header.user = JSON.parse(localStorage.getItem('hnx:me') || 'null');
+    } catch {}
+  };
+
   const finish = () => {
     clearTimeout(HNX.loadingTimer);
     root.classList.remove('hnx-loading');
   };
 
   const original = document.querySelector('body > center') || document.getElementById('hnmain');
+  // /stats is ours: HN answers it with a bare "Unknown." page, which we replace.
+  HNX.isStats = location.pathname === '/stats' && !original;
   const bigbox = document.getElementById('bigbox')?.querySelector(':scope > td') || null;
 
   try {
@@ -42,10 +54,14 @@
 
     const header = HNX.parse.header();
     HNX.header = header;
+    rememberUser(header);
     const { app, main } = HNX.buildShell(header);
 
     let mode = null;
-    if (bigbox) {
+    if (HNX.isStats) {
+      document.body.replaceChildren();
+      mode = await HNX.renderStats({ main, header });
+    } else if (bigbox) {
       const ctx = { main, header, bigbox };
       if (bigbox.querySelector('table.fatitem')) mode = await HNX.renderItem(ctx);
       else if (header.op === 'front' || bigbox.querySelector('tr.athing .titleline')) mode = await HNX.renderList(ctx);

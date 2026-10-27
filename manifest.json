@@ -21,6 +21,7 @@
   "permissions": ["storage"],
   "host_permissions": [
     "https://icons.duckduckgo.com/*",
+    "https://hn.algolia.com/*",
     "https://api.openai.com/*",
     "https://api.deepseek.com/*",
     "https://api.anthropic.com/*"
@@ -45,6 +46,7 @@
         "src/content/topics.js",
         "src/content/list.js",
         "src/content/comments.js",
+        "src/content/stats.js",
         "src/content/keyboard.js",
         "src/content/main.js"
       ],

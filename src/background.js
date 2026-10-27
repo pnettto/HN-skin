@@ -142,6 +142,74 @@ const getTopics = async (stories) => {
   }
 };
 
+// Stats page: one UTC day of activity from the HN Algolia API. Each day is two counts
+// (stories, comments) plus every story that reached 20 points, cached as stats:<day>.
+// The one-day view also asks for hourly counts, cached as stats:<day>:h.
+const ALGOLIA = 'https://hn.algolia.com/api/v1/search_by_date';
+
+const algolia = async (params) => {
+  const res = await fetch(`${ALGOLIA}?${new URLSearchParams(params)}`, { credentials: 'omit' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+};
+
+const hostOf = (url) => {
+  try {
+    return url ? new URL(url).hostname.replace(/^www\./, '') : '';
+  } catch {
+    return '';
+  }
+};
+
+const cachedDay = async (day, suffix, build) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error('bad day');
+  const start = Date.parse(`${day}T00:00:00Z`) / 1000;
+  const end = start + 86400;
+  const key = `stats:${day}${suffix}`;
+  const { [key]: cached } = await chrome.storage.local.get(key);
+  // Points keep moving for a couple of days after posting; older days are close to final.
+  const ttl = Date.now() / 1000 - end > 3 * 86400 ? 24 * 3600e3 : 30 * 60e3;
+  if (cached && Date.now() - cached.t < ttl) return cached;
+  const out = { t: Date.now(), ...(await build(start, end)) };
+  await chrome.storage.local.set({ [key]: out });
+  return out;
+};
+
+const getStatsDay = (day) =>
+  cachedDay(day, '', async (start, end) => {
+    const range = `created_at_i>=${start},created_at_i<${end}`;
+    const [stories, comments, top] = await Promise.all([
+      algolia({ tags: 'story', numericFilters: range, hitsPerPage: 0 }),
+      algolia({ tags: 'comment', numericFilters: range, hitsPerPage: 0 }),
+      algolia({
+        tags: 'story',
+        numericFilters: `${range},points>=20`,
+        hitsPerPage: 1000,
+        attributesToRetrieve: 'title,url,author,points,num_comments,created_at_i',
+        attributesToHighlight: '_none_',
+      }),
+    ]);
+    return {
+      s: stories.nbHits,
+      c: comments.nbHits,
+      // [id, title, host, author, points, comments, unix time]
+      i: top.hits.map((x) => [Number(x.objectID), x.title || '', hostOf(x.url), x.author, x.points || 0, x.num_comments || 0, x.created_at_i]),
+    };
+  });
+
+// 24 story counts and 24 comment counts, one per UTC hour.
+const getStatsHours = (day) =>
+  cachedDay(day, ':h', async (start) => {
+    const counts = (tags) =>
+      Promise.all(
+        Array.from({ length: 24 }, (_, x) =>
+          algolia({ tags, numericFilters: `created_at_i>=${start + x * 3600},created_at_i<${start + (x + 1) * 3600}`, hitsPerPage: 0 }).then((r) => r.nbHits),
+        ),
+      );
+    const [s, c] = await Promise.all([counts('story'), counts('comment')]);
+    return { s, c };
+  });
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === 'favicons' && Array.isArray(msg.hosts)) {
     getIcons(msg.hosts).then(sendResponse, () => sendResponse({}));
@@ -149,6 +217,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
   if (msg?.type === 'topics' && Array.isArray(msg.stories)) {
     getTopics(msg.stories).then(sendResponse, (err) => sendResponse({ topics: {}, error: String(err) }));
+    return true;
+  }
+  if (msg?.type === 'statsDay' || msg?.type === 'statsHours') {
+    (msg.type === 'statsDay' ? getStatsDay : getStatsHours)(msg.day).then(sendResponse, (err) => sendResponse({ error: String(err?.message || err) }));
     return true;
   }
   return false;
